@@ -1,0 +1,1 @@
+id integer PRIMARY KEY AUTOINCREMENT,file_name text NOT NULL,category text NOT NULL,word text NOT NULL, definition text NOT NULL, correct integer NOT NULL, answered integer NOT NULL

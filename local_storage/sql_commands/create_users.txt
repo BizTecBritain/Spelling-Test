@@ -1,0 +1,1 @@
+username text NOT NULL PRIMARY KEY UNIQUE,password text NOT NULL,email text NOT NULL UNIQUE,verified boolean,logged_in boolean,verify_address text,reset_address text NOT NULL
