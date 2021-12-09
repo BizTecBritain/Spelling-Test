@@ -3,7 +3,7 @@ from client.page_manager import PageManager
 
 
 class Base(Tk):
-    ratios = {1920: 1, 1280: 5 / 6}
+    ratios = {1536: 1, 1280: 5 / 6}
 
     def __init__(self, title: str, width: int, height: int, page_manager: PageManager = None) -> None:
         """
@@ -20,5 +20,8 @@ class Base(Tk):
         self.geometry(str(width) + "x" + str(height))
         self.attributes("-fullscreen", True)
         self.resizable(False, False)
-        self.ratio = Base.ratios[self.winfo_screenwidth()]
+        try:
+            self.ratio = Base.ratios[self.winfo_screenwidth()]
+        except KeyError:
+            self.ratio = 1
         self.focus_force()

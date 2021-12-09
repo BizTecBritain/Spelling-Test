@@ -9,7 +9,7 @@ import sqlite3
 import string
 from datetime import datetime, timedelta
 from captcha.image import ImageCaptcha
-from flask import Flask, send_file, Response, make_response, render_template, redirect, url_for
+from flask import Flask, send_file, Response, make_response, render_template, redirect, url_for, request
 from flask_classful import FlaskView, route
 from data_management.database import Database
 from communications.session_management import SessionManager
@@ -106,6 +106,25 @@ class FlaskServer(FlaskView):
                                                       order_by="score DESC, time DESC", limit="10"))
         return ""
 
+    @route('/get_leaderboard', methods=["GET", "POST"])
+    def get_leaderboard_get_post(self) -> str:
+        """
+        Description: Route to get the leadboard based on difficulty for get/post request
+        :return: str - json.dumps of the leaderboard
+        """
+        if request.method == 'POST':
+            try:
+                difficulty = request.form['difficulty']
+                return self.get_leaderboard(difficulty)
+            except KeyError:
+                return ""
+        else:
+            try:
+                difficulty = request.args.get('difficulty')
+                return self.get_leaderboard(difficulty)
+            except KeyError:
+                return ""
+
     @route('/login/<string:username>/<string:password>')
     def login(self, username: str, password: str) -> str:
         """
@@ -116,7 +135,7 @@ class FlaskServer(FlaskView):
         """
         username = unquote(username)
         password = unquote(password)
-        if login_check(username, password) < 0:
+        if username_check(username) < 0:
             return "-4"
         database_manager = Database(self.local_storage + "server.db")
         real_pass = database_manager.select("USERS", "password, verified, logged_in, verify_address",
@@ -137,6 +156,27 @@ class FlaskServer(FlaskView):
             return "-5"
         return "-3"
 
+    @route('/login', methods=["GET", "POST"])
+    def login_get_post(self) -> str:
+        """
+        Description: Route to login user
+        :return: str - new session_id
+        """
+        if request.method == 'POST':
+            try:
+                username = request.form['username']
+                password = request.form['password']
+                return self.login(username, password)
+            except KeyError:
+                return ""
+        else:
+            try:
+                username = request.args.get('username')
+                password = request.args.get('password')
+                return self.login(username, password)
+            except KeyError:
+                return ""
+
     @route('/logout/<string:session_id>')
     def logout(self, session_id: str) -> str:
         """
@@ -152,6 +192,25 @@ class FlaskServer(FlaskView):
         self.session_manager.remove_session(session_id)
         database_manager.update("USERS", "logged_in=\"false\"", "username=\'{}\'".format(username))
         return "-6"
+
+    @route('/logout', methods=["GET", "POST"])
+    def logout_get_post(self) -> str:
+        """
+        Description: Route to logout user
+        :return: str - Null string
+        """
+        if request.method == 'POST':
+            try:
+                session_id = request.form['session_id']
+                return self.logout(session_id)
+            except KeyError:
+                return ""
+        else:
+            try:
+                session_id = request.args.get('session_id')
+                return self.logout(session_id)
+            except KeyError:
+                return ""
 
     @route('/reset_password/<string:username>/<string:email>')
     def reset_password(self, username: str, email: str) -> str:
@@ -188,6 +247,27 @@ class FlaskServer(FlaskView):
                 return "-3"
         return "-8"
 
+    @route('/reset_password', methods=["GET", "POST"])
+    def reset_password_get_post(self) -> str:
+        """
+        Description: Route to reset password
+        :return: Null String
+        """
+        if request.method == 'POST':
+            try:
+                username = request.form['username']
+                email = request.form['email']
+                return self.reset_password(username, email)
+            except KeyError:
+                return ""
+        else:
+            try:
+                username = request.args.get('username')
+                email = request.args.get('email')
+                return self.reset_password(username, email)
+            except KeyError:
+                return ""
+
     @route('/register_user/<string:username>/<string:password>/<string:email>/<string:captcha_uuid>/<string:captcha>')
     def register_user(self, username: str, password: str, email: str, captcha_uuid: str, captcha: str) -> str:
         """
@@ -199,6 +279,10 @@ class FlaskServer(FlaskView):
         :param captcha: The captcha
         :return: Null String
         """
+        username = unquote(username)
+        password = unquote(password)
+        email = unquote(email)
+        captcha = captcha.replace(" ", "")
         if len(self.captchas.keys()) != 0:
             time = datetime.utcnow()
             for captcha_time in list(self.captchas.keys()):
@@ -247,10 +331,37 @@ class FlaskServer(FlaskView):
         else:
             return "-8"
 
+    @route('/register_user', methods=["GET", "POST"])
+    def register_user_get_post(self) -> str:
+        """
+        Description: Route to register user
+        :return: Null String
+        """
+        if request.method == 'POST':
+            try:
+                username = request.form['username']
+                password = request.form['password']
+                email = request.form['email']
+                captcha_uuid = request.form['captcha_uuid']
+                captcha = request.form['captcha']
+                return self.register_user(username, password, email, captcha_uuid, captcha)
+            except KeyError:
+                return ""
+        else:
+            try:
+                username = request.args.get('username')
+                password = request.args.get('password')
+                email = request.args.get('email')
+                captcha_uuid = request.args.get('captcha_uuid')
+                captcha = request.args.get('captcha')
+                return self.register_user(username, password, email, captcha_uuid, captcha)
+            except KeyError:
+                return ""
+
     @route('/get_audio/<string:difficulty>/<string:session_id>')
     def get_audio(self, difficulty: str, session_id: str) -> Response:
         """
-        Description: Constructor sets up attributes including objects
+        Description: Route to download the audio
         :param difficulty: the difficulty of the wordlist
         :param session_id: the session_id of the user
         :return: Response - the requested file and new session_id in the header
@@ -287,6 +398,27 @@ class FlaskServer(FlaskView):
             self.logout(session_id)
             return response
 
+    @route('/get_audio', methods=["GET", "POST"])
+    def get_audio_get_post(self) -> Response:
+        """
+        Description: Route to download the audio
+        :return: Response - the requested file and new session_id in the header
+        """
+        if request.method == 'POST':
+            try:
+                difficulty = request.form['difficulty']
+                session_id = request.form['session_id']
+                return self.get_audio(difficulty, session_id)
+            except KeyError:
+                return make_response("")
+        else:
+            try:
+                difficulty = request.args.get('difficulty')
+                session_id = request.args.get('session_id')
+                return self.get_audio(difficulty, session_id)
+            except KeyError:
+                return make_response("")
+
     @route('/submit_answer/<string:session_id>/<string:answer>')
     def submit_answer(self, session_id: str, answer: str) -> Response:
         """
@@ -295,6 +427,8 @@ class FlaskServer(FlaskView):
         :param answer: the answer that is submitted
         :return: Response - if the question was correct and new session_id in the header
         """
+        answer = unquote(answer).replace(" ", "")
+        answer = ''.join(e for e in answer if e.isalpha())
         status, new_session_id = self.session_manager.validate_session(session_id, 30)
         if status == 1:
             correct = self.session_manager.sessions[new_session_id][1].check(answer)
@@ -327,6 +461,27 @@ class FlaskServer(FlaskView):
             response.headers['error'] = status
             self.logout(session_id)
             return response
+
+    @route('/submit_answer', methods=["GET", "POST"])
+    def submit_answer_get_post(self) -> Response:
+        """
+        Description: Constructor sets up attributes including objects
+        :return: Response - if the question was correct and new session_id in the header
+        """
+        if request.method == 'POST':
+            try:
+                session_id = request.form['session_id']
+                answer = request.form['difficulty']
+                return self.submit_answer(session_id, answer)
+            except KeyError:
+                return make_response("")
+        else:
+            try:
+                session_id = request.args.get('session_id')
+                answer = request.args.get('answer')
+                return self.submit_answer(session_id, answer)
+            except KeyError:
+                return make_response("")
 
     @route('/establish_connection')
     def establish_connection(self) -> str:
@@ -388,6 +543,7 @@ class FlaskServer(FlaskView):
         :param new_pass: the new password for user
         :return: Response - redirect to correct finish page
         """
+        new_pass = unquote(new_pass)
         if not lettersnumbers_only(reset_id):
             return redirect(url_for('FlaskServer:wrong_reset'))
         database_manager = Database(self.local_storage + "server.db")
@@ -396,7 +552,7 @@ class FlaskServer(FlaskView):
         if len(resp) == 1:
             database_manager.update("USERS", "reset_address=\"{0}\"".format(uuid_generator(32)),
                                     "username=\"{0}\"".format(resp[0][0]))
-            if login_check(resp[0][0], new_pass) < 0:
+            if login_check(resp[0][0], new_pass) > 0:
                 password = hash_password(new_pass, resp[0][0])
             else:
                 return redirect(url_for('FlaskServer:wrong_reset_password'))

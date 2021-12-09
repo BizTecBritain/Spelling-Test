@@ -37,7 +37,8 @@ class SessionManager:
                        -19: "The password must contain at least 1 symbol",
                        -20: "Invalid Email",
                        -21: "Invalid username or password",
-                       -22: "Invalid captcha"}
+                       -22: "Invalid captcha",
+                       -23: "Invalid Parameters"}
 
     def new_session(self, user_id: str) -> str:
         """
@@ -124,7 +125,8 @@ class ClientSessionManagement:
                        -19: "The password must contain at least 1 symbol",
                        -20: "Invalid Email",
                        -21: "invalid username or password",
-                       -22: "Invalid captcha"}
+                       -22: "Invalid captcha",
+                       -23: "Invalid Parameters"}
 
     def update(self, session_id: str) -> int:
         """
