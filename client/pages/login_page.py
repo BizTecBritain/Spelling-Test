@@ -7,14 +7,15 @@ import tkinter.messagebox
 from .tk_base import Base
 from tkinter import Label, Entry, Button
 from .my_tk_widgets import PhotoImage, ClickButton
-from client.error_manager import show_error
+from client.error_manager import show_error, ask_yes_no
 from communications.security import hash_password, login_check
 from PIL import ImageTk, Image
 import webbrowser
+from urllib.parse import quote
 
 
-class LoginPage(Base):
-    def __init__(self, page_manager):
+class LoginPage(Base):  # TODO log yourself out of other accounts
+    def __init__(self, page_manager) -> None:
         """
         Description: Constructor makes all of the tkinter widgets
         :param page_manager: the PageManager object
@@ -102,16 +103,25 @@ class LoginPage(Base):
             return
         login_check_val = login_check(username, password)
         if login_check_val < 0:
-            tkinter.messagebox.showerror("Invalid Credentials",
-                                         self.page_manager.session_manager.errors[login_check_val])
+            tkinter.messagebox.showerror("Invalid Credentials", "The password you entered is incorrect!")
             return
         password = hash_password(password, username)
+        username = quote(username, safe="")
         session_id = self.page_manager.data_channel.get_text("login/{0}/{1}".format(username, password))
         if session_id[1:].isnumeric() and session_id[0] == "-":
             if int(session_id) < 0:
-                show_error(SystemError(self.page_manager.session_manager.errors[int(session_id)]))
-                self.entry_password.delete(0, 'end')
-                return
+                if int(session_id) == -5:
+                    resp = ask_yes_no("Already logged in", "You have a session elsewhere! Do you want to log it out?")
+                    if resp:
+                        session_id = self.page_manager.data_channel.get_text("login/{0}/{1}/1".format(username,
+                                                                                                      password))
+                        self.login()
+                    else:
+                        return
+                else:
+                    show_error(SystemError(self.page_manager.session_manager.errors[int(session_id)]))
+                    self.entry_password.delete(0, 'end')
+                    return
         self.page_manager.session_manager.update(session_id)
         self.page_manager.logged_in = True
         self.on_closing()

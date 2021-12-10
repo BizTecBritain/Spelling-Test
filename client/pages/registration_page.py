@@ -10,6 +10,7 @@ from .my_tk_widgets import PhotoImage, ClickButton
 from PIL import ImageTk, Image
 import webbrowser
 from client.error_manager import show_error
+from urllib.parse import quote
 
 
 class RegistrationPage(Base):
@@ -102,8 +103,12 @@ class RegistrationPage(Base):
         username, password = self.username_ask_entry.get(), self.password_ask_entry.get()
         email = self.email_ask_entry.get()
         if username != "" and password != "" and email != "":
+            username = quote(username, safe="")
+            password = quote(password, safe="")
+            email = quote(email, safe="")
+            the_captcha = quote(self.captcha_ask_entry.get().lower(), safe="")
             address = "register_user/{0}/{1}/{2}/{3}/{4}".format(username, password, email, self.cap_uuid,
-                                                                 self.captcha_ask_entry.get().lower())
+                                                                 the_captcha)
             resp = int(self.page_manager.data_channel.get_text(address))
             if resp > 0:
                 self.page_manager.registration_verify_page(self)

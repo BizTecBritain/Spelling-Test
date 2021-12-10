@@ -7,6 +7,7 @@ from tkinter import Label, Button, Entry
 from .my_tk_widgets import PhotoImage, ClickButton
 from PIL import ImageTk, Image
 from client.error_manager import show_error
+from urllib.parse import quote
 
 
 class ForgotPasswordPage(Base):
@@ -73,8 +74,9 @@ class ForgotPasswordPage(Base):
         Description: Function for when submit is pressed
         :return: void
         """
-        resp = self.page_manager.data_channel.get_text("reset_password/{0}/{1}".format(self.username_entry.get(),
-                                                                                       self.email_entry.get()))
+        username = quote(self.username_entry.get(), safe="")
+        email = quote(self.email_entry.get(), safe="")
+        resp = self.page_manager.data_channel.get_text("reset_password/{0}/{1}".format(username, email))
         if int(resp) == -8:
             self.page_manager.too_many_requests_page(self)
         elif int(resp) < 0:

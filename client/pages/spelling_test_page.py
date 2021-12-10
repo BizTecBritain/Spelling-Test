@@ -7,6 +7,7 @@ from tkinter import Label, messagebox, Entry
 from .my_tk_widgets import PhotoImage, Button, ClickButton
 from PIL import ImageTk, Image
 from client.error_manager import show_error
+from urllib.parse import quote
 
 
 class SpellingTestPage(Base):
@@ -92,11 +93,14 @@ class SpellingTestPage(Base):
             if len(word) != 0:
                 self.word_text.delete(0, 'end')
                 session_id = self.page_manager.session_manager.get_session_id()
+                word = quote(word, safe="")
                 _, headers = self.page_manager.data_channel.get_text_headers(
                     "submit_answer/{0}/{1}".format(session_id, word))
                 if int(headers["error"]) == 0:
                     self.page_manager.session_manager.update(headers["session_id"])
                 else:
+                    if int(headers['error']) == -2:
+                        self.page_manager.logged_in = False
                     show_error(SystemError(self.page_manager.session_manager.errors[int(headers["error"])]))
                     self.page_manager.menu_page(self)
                 if self.words_completed == 10:
@@ -121,6 +125,8 @@ class SpellingTestPage(Base):
             self.file = file
             self.speak_word()
         else:
+            if int(headers['error']) == -2:
+                self.page_manager.logged_in = False
             show_error(SystemError(self.page_manager.session_manager.errors[int(headers["error"])]))
             self.page_manager.menu_page(self)
         self.words_completed += 1

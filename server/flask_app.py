@@ -126,11 +126,22 @@ class FlaskServer(FlaskView):
                 return ""
 
     @route('/login/<string:username>/<string:password>')
-    def login(self, username: str, password: str) -> str:
+    def login_short(self, username: str, password: str) -> str:
         """
         Description: Route to login user
         :param username: the username of the user to log in
         :param password: the password of the user to log in
+        :return: str - new session_id
+        """
+        return self.login(username, password, "0")
+
+    @route('/login/<string:username>/<string:password>/<string:logout>')
+    def login(self, username: str, password: str, logout: str) -> str:
+        """
+        Description: Route to login user
+        :param username: the username of the user to log in
+        :param password: the password of the user to log in
+        :param logout: whether to logout other users
         :return: str - new session_id
         """
         username = unquote(username)
@@ -154,6 +165,11 @@ class FlaskServer(FlaskView):
             return "-9"
         if real_pass[0][2] == "true":
             return "-5"
+        elif real_pass[0][2] == "true" and real_pass[0][0] == hashed_pass and logout == "1":
+            session_id = self.session_manager.get_session_id_from_user(username)
+            database_manager.update("USERS", "logged_in=\"false\"", "username=\'{}\'".format(username))
+            if session_id != "":
+                self.logout(session_id)
         return "-3"
 
     @route('/login', methods=["GET", "POST"])
@@ -437,6 +453,7 @@ class FlaskServer(FlaskView):
                 response = make_response("1", 200)
             else:
                 response = make_response("0", 200)
+            delete_game = False
             if self.session_manager.sessions[new_session_id][1].get_finished():
                 time = self.session_manager.sessions[new_session_id][1].difference()
                 response.headers['time'] = time
@@ -448,12 +465,15 @@ class FlaskServer(FlaskView):
                 date_time = now.strftime("%d/%m/%Y")
                 difficulty = self.session_manager.sessions[new_session_id][1].difficulty
                 database_manager.insert("LEADERBOARD", [username, score, avg_time, date_time, difficulty])
+                delete_game = True
             else:
                 response.headers['time'] = "not finished"
             response.headers['score'] = self.session_manager.sessions[new_session_id][1].get_score()
             response.headers['correct'] = self.session_manager.sessions[new_session_id][1].get_correct()
             response.headers['session_id'] = new_session_id
             response.headers['error'] = 0
+            if delete_game:
+                self.session_manager.sessions[new_session_id][1] = None
             return response
         else:
             response = make_response()

@@ -13,7 +13,9 @@ class AudioPlayer:
         Description: Constructor sets up attributes and objects
         :return: void
         """
-        pygame.mixer.init()
+        pygame.mixer.pre_init(frequency=44100)
+        pygame.init()
+        pygame.mixer.init(frequency=44100)
         self.paused = False
 
     def start(self, file: str, loops: int = 0) -> None:
@@ -23,8 +25,8 @@ class AudioPlayer:
         :param loops: the number of times to play
         :return: void
         """
-        if pygame.mixer.music.get_busy():
-            pygame.mixer.music.stop()
+        pygame.mixer.music.stop()
+        pygame.mixer.init()
         pygame.mixer.music.load(file)
         pygame.mixer.music.play(loops)
         self.paused = False

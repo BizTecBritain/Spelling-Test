@@ -93,6 +93,17 @@ class SessionManager:
         """
         del self.sessions[session_id]
 
+    def get_session_id_from_user(self, user: str) -> str:
+        """
+        Description: Gets the session_id from the username
+        :param user: the username
+        :return: str - the session_id
+        """
+        for value in self.sessions.values():
+            if value[0].get_user() == user:
+                return value[0].uuid
+        return ""
+
 
 class ClientSessionManagement:
     def __init__(self) -> None:
