@@ -17,16 +17,24 @@ class AudioPlayer:
         pygame.init()
         pygame.mixer.init(frequency=44100)
         self.paused = False
+        self.music_volume = 100  # TODO Change
+        self.game_volume = 100
+        self.MUSIC_END = pygame.USEREVENT+1
 
-    def start(self, file: str, loops: int = 0) -> None:
+    def start(self, file: str, loops: int = 0, music: bool = False) -> None:
         """
         Description: Function to start a new peice of music
         :param file: the name of the file to play
         :param loops: the number of times to play
+        :param music: if the audio is a music file or audio file
         :return: void
         """
         pygame.mixer.music.stop()
         pygame.mixer.init()
+        if music:
+            pygame.mixer.music.set_volume(self.music_volume)
+        else:
+            pygame.mixer.music.set_volume(self.game_volume)
         pygame.mixer.music.load(file)
         pygame.mixer.music.play(loops)
         self.paused = False
@@ -53,12 +61,29 @@ class AudioPlayer:
             pygame.mixer.music.stop()
 
     @staticmethod
+    def fade() -> None:
+        """
+        Description: Function to stop a channel from playing and delete it
+        :return: void
+        """
+        if not pygame.mixer.music.get_busy():
+            pygame.mixer.music.fadeout(200)
+
+    @staticmethod
     def click() -> None:
         """
         Description: Function to play mouse click sound
         :return: void
         """
         pygame.mixer.Sound("local_storage/clieent_audio/MouseClick.wav").play()
+
+    @staticmethod
+    def get_events() -> pygame.event:
+        """
+        Description: Function to get the events from pygame
+        :return: pygame.event - the events
+        """
+        return pygame.event.get()
 
     def __del__(self) -> None:
         """

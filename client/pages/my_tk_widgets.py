@@ -1,9 +1,10 @@
-__all__ = ['PhotoImage', 'Button', 'ClickButton']
+__all__ = ['PhotoImage', 'Button', 'ClickButton', 'Slider']
 __version__ = '3.0.2'
-__author__ = 'Alexander Bisland'
+__author__ = 'Edward Hopper'
 
 import tkinter
 from PIL import ImageTk, Image
+from customtkinter import CTkSlider
 
 
 class PhotoImage(ImageTk.PhotoImage):
@@ -76,3 +77,19 @@ class ClickButton(tkinter.Label):
         """
         self.configure(image=self.image)
         self.command()
+
+
+class Slider(CTkSlider):
+    def __init__(self, *args, **kwargs):
+        """
+        Description: Constructor resizes image and then calls super()
+        :param args: the arguments for CTkSlider.__init__()
+        :param kwargs: the keyword arguments for CTkSlider.__init__()
+        :return: void
+        """
+        ratio = kwargs.pop('ratio')
+        kwargs['width'] *= ratio
+        kwargs['height'] *= ratio
+        kwargs['border_width'] *= ratio
+        kwargs['bg_color'] = '#E4D6B6'
+        super().__init__(*args, **kwargs)
