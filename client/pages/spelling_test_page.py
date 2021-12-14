@@ -10,7 +10,7 @@ from client.error_manager import show_error
 from urllib.parse import quote
 
 
-class SpellingTestPage(Base):
+class SpellingTestPage(Base):  # TODO update description, fix position
     def __init__(self, page_manager):
         """
         Description: Constructor makes all of the tkinter widgets
@@ -39,6 +39,9 @@ class SpellingTestPage(Base):
                                                  ratio=self.ratio)  # opens the image
         self.test_title_label = Label(self, text="", image=self.test_title_label_photo, bg='#E4D6B6')  # label details
         self.test_title_label.place(x=self.ratio * 600, y=self.ratio * 200)  # places the label
+
+        self.definition = Label(self, font=('Courier', str(int(16 * self.ratio))), bg='#E4D6B6')  # detail
+        self.definition.place(x=self.ratio * 250, y=self.ratio * 280)  # places the label
 
         self.type_here_label = Label(self, text='Type Your Answer Here', font=('Courier', str(int(16 * self.ratio))),
                                      bg='#E4D6B6')  # detail
@@ -93,13 +96,14 @@ class SpellingTestPage(Base):
             if len(word) != 0:
                 self.word_text.delete(0, 'end')
                 session_id = self.page_manager.session_manager.get_session_id()
-                word = quote(word, safe="")
+                quote_word = quote(word, safe="")
                 _, headers = self.page_manager.data_channel.get_text_headers(
-                    "submit_answer/{0}/{1}".format(session_id, word))
+                    "submit_answer/{0}/{1}".format(session_id, quote_word))
+                self.page_manager.words_list.append([word, headers['prev_word']])
                 if int(headers["error"]) == 0:
                     self.page_manager.session_manager.update(headers["session_id"])
                 else:
-                    if int(headers['error']) == -2:
+                    if int(headers['error']) == -2 or int(headers['error']) == -1:
                         self.page_manager.logged_in = False
                     show_error(SystemError(self.page_manager.session_manager.errors[int(headers["error"])]))
                     self.page_manager.menu_page(self)
@@ -117,15 +121,22 @@ class SpellingTestPage(Base):
                     self.next_word_button.image = self.next_word_button_photo
                     self.next_word_button.place_forget()
                     self.next_word_button.place(x=self.ratio * 230, y=self.ratio * 430)
+            else:
+                return
         difficulty = self.page_manager.difficulty_chosen
         session_id = self.page_manager.session_manager.get_session_id()
         file, headers = self.page_manager.data_channel.download_file("get_audio/{0}/{1}".format(difficulty, session_id))
+        self.definition.configure(text=headers['definition'])
         if int(headers["error"]) == 0:
             self.page_manager.session_manager.update(headers["session_id"])
             self.file = file
             self.speak_word()
         else:
-            if int(headers['error']) == -2:
+            if int(headers['error']) == -7:
+                self.page_manager.logged_in = False
+                show_error(SystemError("Problem with the session, Please try again!"))
+                self.page_manager.menu_page(self)
+            if int(headers['error']) == -2 or int(headers['error']) == -1:
                 self.page_manager.logged_in = False
             show_error(SystemError(self.page_manager.session_manager.errors[int(headers["error"])]))
             self.page_manager.menu_page(self)

@@ -25,6 +25,7 @@ class PageManager:
         self.time = None
         self.score = None
         self.correct = None
+        self.words_list = []
 
     def start(self, ip_address, port, old_session_id, debug=False) -> None:
         """
@@ -109,6 +110,14 @@ class PageManager:
     @Decorator.destroy_prev
     def registration_verify_page(self):
         client.pages.RegistrationVerifyPage(self).mainloop()
+
+    @Decorator.destroy_prev
+    def settings_page(self):
+        client.pages.SettingsPage(self).mainloop()
+
+    @Decorator.destroy_prev
+    def credits_page(self):
+        client.pages.CreditsPage(self).mainloop()
 
 
 if __name__ == "__main__":

@@ -1,5 +1,6 @@
 __all__ = ['EndPage', 'LeaderboardPage', 'LoginPage', 'MenuPage', 'RegistrationPage', 'SpellingTestPage',
-           'DifficultyPage', 'ForgotPasswordPage', 'TooManyRequestsPage', 'RegistrationVerifyPage', 'ForgotVerifyPage']
+           'DifficultyPage', 'ForgotPasswordPage', 'TooManyRequestsPage', 'RegistrationVerifyPage', 'ForgotVerifyPage',
+           'CreditsPage', 'SettingsPage']
 __version__ = '2.0.0'
 __author__ = 'Finley Wallace - Wright'
 
@@ -14,3 +15,5 @@ from .forgot_password import ForgotPasswordPage
 from .too_many_requests import TooManyRequestsPage
 from .registration_verify import RegistrationVerifyPage
 from .forgot_verify import ForgotVerifyPage
+from .credits_page import CreditsPage
+from .settings_page import SettingsPage

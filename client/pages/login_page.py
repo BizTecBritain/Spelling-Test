@@ -14,7 +14,7 @@ import webbrowser
 from urllib.parse import quote
 
 
-class LoginPage(Base):  # TODO log yourself out of other accounts
+class LoginPage(Base):  # TODO add 2fa
     def __init__(self, page_manager) -> None:
         """
         Description: Constructor makes all of the tkinter widgets
@@ -107,7 +107,7 @@ class LoginPage(Base):  # TODO log yourself out of other accounts
             return
         password = hash_password(password, username)
         username = quote(username, safe="")
-        session_id = self.page_manager.data_channel.get_text("login/{0}/{1}".format(username, password))
+        session_id = self.page_manager.data_channel.get_text("login/{0}/{1}/0".format(username, password))
         if session_id[1:].isnumeric() and session_id[0] == "-":
             if int(session_id) < 0:
                 if int(session_id) == -5:

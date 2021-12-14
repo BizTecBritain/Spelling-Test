@@ -64,6 +64,12 @@ class MenuPage(Base):
                                   command=self.destroy)  # details for button
         self.quit_button.place(x=self.ratio*500, y=self.ratio*600)  # places the button
 
+        self.settings_button_photo = PhotoImage(file=r"local_storage/images/settings.png",
+                                                ratio=self.ratio)  # opens the image to be used
+        self.settings_button = Button(self, text="", image=self.settings_button_photo, bg='#E4D6B6',
+                                      command=self.settings)  # details for button
+        self.settings_button.place(x=self.ratio * 20, y=self.ratio * 20)
+
     def login(self) -> None:
         """
         Description: Function to return to the login page
@@ -101,3 +107,10 @@ class MenuPage(Base):
         self.page_manager.data_channel.get_text("logout/{0}".format(session_id))
         self.page_manager.logged_in = False
         self.page_manager.menu_page(self)
+
+    def settings(self) -> None:
+        """
+        Description: Function to return to the settings page
+        :return: void
+        """
+        self.page_manager.settings_page(self)

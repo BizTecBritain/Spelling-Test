@@ -138,8 +138,18 @@ class LeaderboardPage(Base):
         self.drop_down = OptionMenu(self, self.clicked, *self.options)  # details
         self.drop_down.place(x=self.ratio * 50, y=self.ratio * 60)  # places the drop down
 
+        self.options_data = ['Scores', 'Words']  # options for drop down
+        self.clicked_data = StringVar()  # variable for the value chosen
+        self.clicked_data.set('Scores')  # default setting
+        self.clicked_data.trace("w", lambda *args: self.refresh())
+        self.drop_down_data = OptionMenu(self, self.clicked_data, *self.options_data)  # details
+        self.drop_down_data.place(x=self.ratio * 1400, y=self.ratio * 60)  # places the drop down
+
         self.difficulty_label = Label(self, text='Difficulty', font=('Courier', '16'), bg='#E4D6B6')  # label details
         self.difficulty_label.place(x=self.ratio * 20, y=self.ratio * 20)  # places the label
+
+        self.datatype_label = Label(self, text='Datatype', font=('Courier', '16'), bg='#E4D6B6')  # label details
+        self.datatype_label.place(x=self.ratio * 1380, y=self.ratio * 20)  # places the label
 
         self.refresh_button_photo = PhotoImage(file=r"local_storage/images/refresh.png", ratio=self.ratio*0.75)
         self.refresh_button = ClickButton(self, text="", image=self.refresh_button_photo, bg='#E4D6B6',
@@ -176,13 +186,21 @@ class LeaderboardPage(Base):
             score_box.configure(state='normal')
             score_box.delete("1.0", 'end')
             score_box.configure(state='disabled')
-        resp = self.page_manager.data_channel.get_text("get_leaderboard/" + self.clicked.get().lower())
+        resp = self.page_manager.data_channel.get_text("get_leaderboard/{0}/{1}".format(self.clicked_data.get().lower(),
+                                                                                        self.clicked.get().lower()))
         if len(resp) == 0:
             raise SystemError(self.page_manager.session_manager.errors[-3])
         resp_dict = json.loads(resp)
-        for index, person in enumerate(resp_dict):
-            score_boxes[index].configure(state='normal')
-            score_boxes[index].insert("1.0", "{0} {1}p {2}s".format(person[1], person[2], str(int(person[3]) / 1000)))
-            score_boxes[index].configure(state='disabled')
+        if self.clicked_data.get().lower() == "scores":
+            for index, person in enumerate(resp_dict):
+                score_boxes[index].configure(state='normal')
+                score_boxes[index].insert("1.0", "{0} {1}p {2}s".format(person[1], person[2], str(int(person[3])/1000)))
+                score_boxes[index].configure(state='disabled')
+        elif self.clicked_data.get().lower() == "words":
+            for index, word in enumerate(resp_dict):
+                score_boxes[index].configure(state='normal')
+                score_boxes[index].insert("1.0", "{0} {1}%".format(word[0][0],
+                                                                   int((int(word[0][1])/int(word[0][2]))*100)))
+                score_boxes[index].configure(state='disabled')
         self.update()
         self.update_idletasks()

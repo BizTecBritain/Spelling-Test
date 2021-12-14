@@ -87,23 +87,42 @@ class FlaskServer(FlaskView):
         if cls.debug:
             print("Finished logging everyone out")
 
-    @route('/get_leaderboard/<string:difficulty>')
-    def get_leaderboard(self, difficulty: str) -> str:
+    @route('/get_leaderboard/<string:datatype>/<string:difficulty>')
+    def get_leaderboard(self, datatype: str, difficulty: str) -> str:
         """
         Description: Route to get the leadboard based on difficulty
+        :param datatype: the type of leaderboard to return
         :param difficulty: the file of the database to access
         :return: str - json.dumps of the leaderboard
         """
         database_manager = Database(self.local_storage + "server.db")
-        if difficulty == "easy":
-            return json.dumps(database_manager.select("LEADERBOARD", "*", where="category=\'easy\'",
-                                                      order_by="score DESC, time DESC", limit="10"))
-        if difficulty == "medium":
-            return json.dumps(database_manager.select("LEADERBOARD", "*", where="category=\'medium\'",
-                                                      order_by="score DESC, time DESC", limit="10"))
-        if difficulty == "hard":
-            return json.dumps(database_manager.select("LEADERBOARD", "*", where="category=\'hard\'",
-                                                      order_by="score DESC, time DESC", limit="10"))
+        if datatype == "scores":
+            if difficulty == "easy":
+                return json.dumps(database_manager.select("LEADERBOARD", "*", where="category=\'easy\'",
+                                                          order_by="score DESC, time DESC", limit="10"))
+            if difficulty == "medium":
+                return json.dumps(database_manager.select("LEADERBOARD", "*", where="category=\'medium\'",
+                                                          order_by="score DESC, time DESC", limit="10"))
+            if difficulty == "hard":
+                return json.dumps(database_manager.select("LEADERBOARD", "*", where="category=\'hard\'",
+                                                          order_by="score DESC, time DESC", limit="10"))
+        if datatype == "words":
+            words = []
+            if difficulty == "easy":
+                words = database_manager.select("WORDLIST", "word, correct, answered",
+                                                where="category=\'easy\' AND answered>0")
+            if difficulty == "medium":
+                words = database_manager.select("WORDLIST", "word, correct, answered",
+                                                where="category=\'medium\' AND answered>0")
+            if difficulty == "hard":
+                words = database_manager.select("WORDLIST", "word, correct, answered",
+                                                where="category=\'hard\' AND answered>0")
+            if difficulty in ["easy", "medium", "hard"]:
+                order_words = {}
+                for word in words:
+                    order_words[word] = int(word[1]) / int(word[2]) * 100
+                order_words = sorted(order_words.items(), key=lambda x: int(x[1]), reverse=True)[:10]
+                return json.dumps(order_words)
         return ""
 
     @route('/get_leaderboard', methods=["GET", "POST"])
@@ -163,13 +182,13 @@ class FlaskServer(FlaskView):
             return "-4"
         if real_pass[0][1] == "false":
             return "-9"
-        if real_pass[0][2] == "true":
-            return "-5"
-        elif real_pass[0][2] == "true" and real_pass[0][0] == hashed_pass and logout == "1":
+        if real_pass[0][2] == "true" and real_pass[0][0] == hashed_pass and logout == "1":
             session_id = self.session_manager.get_session_id_from_user(username)
             database_manager.update("USERS", "logged_in=\"false\"", "username=\'{}\'".format(username))
             if session_id != "":
                 self.logout(session_id)
+        if real_pass[0][2] == "true":
+            return "-5"
         return "-3"
 
     @route('/login', methods=["GET", "POST"])
@@ -391,26 +410,32 @@ class FlaskServer(FlaskView):
                 return response
             database_manager = Database(self.local_storage + "server.db")
             if self.session_manager.sessions[new_session_id][1] is None:
-                wordlist = database_manager.select("WORDLIST", "word", where="category=\"{0}\"".format(difficulty))
+                wordlist = database_manager.select("WORDLIST", "word, definition",
+                                                   where="category=\"{0}\"".format(difficulty))
+                definitions = {element[0]: element[1] for element in wordlist}
                 wordlist = [element[0] for element in wordlist]
                 random.shuffle(wordlist)
                 wordlist = wordlist[:10]
-                self.session_manager.new_game(new_session_id, wordlist, difficulty, self.local_storage)
+                definitions = [definitions[element] for element in wordlist]
+                self.session_manager.new_game(new_session_id, wordlist, definitions, difficulty, self.local_storage)
             elif self.session_manager.sessions[new_session_id][1].difficulty != difficulty:
                 response = make_response()
                 response.headers['session_id'] = new_session_id
                 response.headers['error'] = -7
+                response.headers['definition'] = ""
                 return response
-            word = self.session_manager.sessions[new_session_id][1].next_word()
+            word, definition = self.session_manager.sessions[new_session_id][1].next_word()
             filename = database_manager.select("WORDLIST", "file_name", where="word=\"{0}\"".format(word))[0][0]
             response = make_response(send_file('..\\' + self.local_storage.replace("/", "\\") + 'audio\\' + filename))
             response.headers['session_id'] = new_session_id
             response.headers['error'] = 0
+            response.headers['definition'] = definition
             return response
         else:
             response = make_response()
             response.headers['session_id'] = new_session_id
             response.headers['error'] = status
+            response.headers['definition'] = ""
             self.logout(session_id)
             return response
 
@@ -447,7 +472,7 @@ class FlaskServer(FlaskView):
         answer = ''.join(e for e in answer if e.isalpha())
         status, new_session_id = self.session_manager.validate_session(session_id, 30)
         if status == 1:
-            correct = self.session_manager.sessions[new_session_id][1].check(answer)
+            correct, word = self.session_manager.sessions[new_session_id][1].check(answer)
             self.session_manager.sessions[new_session_id][1].end()
             if correct:
                 response = make_response("1", 200)
@@ -472,6 +497,7 @@ class FlaskServer(FlaskView):
             response.headers['correct'] = self.session_manager.sessions[new_session_id][1].get_correct()
             response.headers['session_id'] = new_session_id
             response.headers['error'] = 0
+            response.headers['prev_word'] = word
             if delete_game:
                 self.session_manager.sessions[new_session_id][1] = None
             return response

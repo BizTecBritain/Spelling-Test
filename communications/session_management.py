@@ -74,16 +74,18 @@ class SessionManager:
         """
         return self.sessions[session_id][0].get_user()
 
-    def new_game(self, session_id: str, wordlist: List[str], category: str, local_storage: str) -> None:
+    def new_game(self, session_id: str, wordlist: List[str], definitions: List[str], category: str,
+                 local_storage: str) -> None:
         """
         Description: Creates a new game object for a session
         :param session_id: the id of the session
         :param wordlist: the list of words for the game
+        :param definitions: the list of definitions for the words
         :param category: the difficulty of the wordlist
         :param local_storage: th path to local storage
         :return: void
         """
-        self.sessions[session_id][1] = Game(wordlist, category, local_storage)
+        self.sessions[session_id][1] = Game(wordlist, definitions, category, local_storage)
 
     def remove_session(self, session_id: str) -> None:
         """

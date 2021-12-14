@@ -3,17 +3,17 @@ __version__ = '1.2.1'
 __author__ = 'Alexander Bisland'
 
 from datetime import datetime
-from typing import List
-
+from typing import List, Tuple
 from data_management import Database
 
 
 class Game:
-    def __init__(self, wordlist: List[str], difficulty: str, local_storage: str) -> None:
+    def __init__(self, wordlist: List[str], definitions: List[str], difficulty: str, local_storage: str) -> None:
         """
         Description: Constructor sets up attributes
         :param wordlist: the list of words for the game
         :param difficulty: the difficulty of the game
+        :param definitions: the list of definitions for the words
         :param local_storage: the path for local storage
         :return: void
         """
@@ -21,6 +21,7 @@ class Game:
         self.__prev_time = datetime.utcnow()
         self.__end = None
         self.__wordlist = wordlist
+        self.__definitions = definitions
         self.__index = 0
         self.__score = 0
         self.__correct = 0
@@ -48,27 +49,29 @@ class Game:
             return (self.__end - self.__start).total_seconds()
         raise RuntimeError("The timer has not ended yet")
 
-    def next_word(self) -> str:
+    def next_word(self) -> Tuple[str, str]:
         """
         Description: Function that returns the next word in the list
-        :return: str - the next word in the list
+        :return: Tuple[str, str] - the next word in the list and its definition
         """
         if not self.__finished:
             word = self.__wordlist[self.__index]
+            definition = self.__definitions[self.__index]
             self.__index += 1
-            return word
-        return ""
+            return word, definition
+        return "", ""
 
-    def check(self, answer: str) -> bool:
+    def check(self, answer: str) -> Tuple[bool, str]:
         """
         Description: Function used to verify if the user input was correct
         :param answer: the users answer
-        :return: bool - boolean to show if it was correct or not
+        :return: Tuple[bool, str] - boolean to show if it was correct or not and the word
         """
         bonus = 0
         if (datetime.utcnow() - self.__prev_time).total_seconds() < 5:
             bonus = 5
         self.__prev_time = datetime.utcnow()
+        word = ""
         if not self.__finished:
             word = self.__wordlist[self.__index-1]
             database = Database(self.local_storage + "server.db")
@@ -80,8 +83,8 @@ class Game:
                 print(database.select("WORDLIST", "*"))
                 self.__score += 5 + bonus
                 self.__correct += 1
-                return True
-        return False
+                return True, word
+        return False, word
 
     def get_score(self) -> int:
         """
