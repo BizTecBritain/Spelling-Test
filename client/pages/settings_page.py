@@ -4,7 +4,7 @@ __author__ = 'Finley Wallace - Wright'
 
 from .tk_base import Base
 from tkinter import Label, Checkbutton, IntVar
-from .my_tk_widgets import PhotoImage, Button, Slider
+from .my_tk_widgets import PhotoImage, Button, Slider, ClickButton
 from PIL import ImageTk, Image
 from client.page_manager import PageManager
 from data_management.config import Config
@@ -79,8 +79,8 @@ class SettingsPage(Base):
         self.click_audio_var.set(temp_click)
         self.click_audio_var.trace_add("write", lambda *args: click_change())
         self.click_audio = Checkbutton(self, text="Click audio", font=("Courier", str(int(16 * self.ratio))),
-                                       variable=self.click_audio_var, bg='#E4D6B6')
-        self.click_audio.place(x=self.ratio * 500, y=self.ratio * 500)
+                                       variable=self.click_audio_var, bg='#E4D6B6', activebackground='#E4D6B6')
+        self.click_audio.place(x=self.ratio * 100, y=self.ratio * 500)
 
         def click_change() -> None:
             """
@@ -145,24 +145,42 @@ class SettingsPage(Base):
         self.game_audio_slider.place(x=self.ratio * 350, y=self.ratio * 405)  # places
         self.game_audio_slider.set(self.game_audio_volume_set * 100)  # sets the slider to its default
 
-        self.test_button_photo = PhotoImage(file=r"local_storage/images/test_sound.png", ratio=self.ratio)  # image
-        self.test_button_music = Button(self, text="", image=self.test_button_photo, bg='#E4D6B6',
-                                        activebackground='#E4D6B6', command=self.test_sound_music)  # details
-        self.test_button_music.place(x=self.ratio * 1180, y=self.ratio * 300)  # places the button
+        self.test_button_photo = PhotoImage(file=r"local_storage/images/test_sound.png", ratio=self.ratio*0.65)  # image
+        self.test_button_music = ClickButton(self, text="", image=self.test_button_photo, command=self.test_sound_music,
+                                             activebackground='#E4D6B6', bg='#E4D6B6', ratio=self.ratio*0.65,
+                                             op_file="local_storage/images/test_sound_highlight.png")  # details
+        self.test_button_music.place(x=self.ratio * 1180, y=self.ratio * 280)  # places the button
 
-        self.test_button_game = Button(self, text="", image=self.test_button_photo, bg='#E4D6B6',
-                                       activebackground='#E4D6B6', command=self.test_sound_game)  # details
-        self.test_button_game.place(x=self.ratio * 1180, y=self.ratio * 400)  # places the button
+        self.test_button_game = ClickButton(self, text="", image=self.test_button_photo, command=self.test_sound_game,
+                                            activebackground='#E4D6B6', bg='#E4D6B6', ratio=self.ratio*0.65,
+                                            op_file="local_storage/images/test_sound_highlight.png")  # details
+        self.test_button_game.place(x=self.ratio * 1180, y=self.ratio * 380)  # places the button
 
-        self.apply_button_photo = PhotoImage(file=r"local_storage/images/apply.png", ratio=self.ratio)  # opens image
-        self.apply_button = Button(self, text="", image=self.apply_button_photo, bg='#E4D6B6',
-                                   activebackground='#E4D6B6', command=self.apply)  # details
+        self.apply_button_photo = PhotoImage(file=r"local_storage/images/apply.png", ratio=self.ratio)
+        self.apply_button = ClickButton(self, text="", image=self.apply_button_photo, bg='#E4D6B6', ratio=self.ratio,
+                                        activebackground='#E4D6B6', command=self.apply,
+                                        op_file="local_storage/images/apply_highlight.png")  # details
         self.apply_button.place(x=self.ratio * 2, y=self.ratio * 781)  # places the button
+
+        self.credits_button_photo = PhotoImage(file=r"local_storage/images/credits_button.png", ratio=self.ratio*1.5)
+        self.credits_button = ClickButton(self, text="", image=self.credits_button_photo, bg='#E4D6B6',
+                                          activebackground='#E4D6B6', command=self.credits, ratio=self.ratio*1.5,
+                                          op_file="local_storage/images/credits_button_highlight.png")  # details
+
+        self.credits_button.place(x=self.ratio * 520, y=self.ratio * 600)  # places the button
 
         self.applied = True
         self.playing = 0
         self.check_event()
         self.protocol("WM_DELETE_WINDOW", self.menu)
+
+    def credits(self) -> None:
+        """
+        Description: Function for when the credits button is pressed
+        :return: void
+        """
+        self.page_manager.audio_manager.click()
+        self.page_manager.credits_page(self)  # opens the credits page
 
     def menu(self) -> None:
         """
@@ -172,7 +190,7 @@ class SettingsPage(Base):
         if not self.applied:
             if ask_yes_no("Apply Settings", "Do you want to apply the settings?"):
                 self.apply()
-        self.page_manager.audio_manager.start("local_storage/client_audio/main_menu_music.mp3", -1)
+        self.page_manager.audio_manager.start("local_storage/client_audio/main_menu_music.mp3", -1, True)
         self.page_manager.menu_page(self)  # opens the menu page
 
     def test_sound_music(self) -> None:
@@ -250,6 +268,7 @@ class SettingsPage(Base):
         self.config_parser.append_tag("USERINFO", "game_volume", str(self.game_audio_volume_set))
         self.page_manager.audio_manager.click_play = self.click_audio_var.get()
         self.config_parser.append_tag("USERINFO", "click", str(self.click_audio_var.get()))
+        self.applied = True
 
     def check_event(self) -> None:
         """

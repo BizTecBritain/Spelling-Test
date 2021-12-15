@@ -3,6 +3,7 @@ __version__ = '1.2.1'
 __author__ = 'Alexander Bisland'
 
 import os
+from data_management.config import Config
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame
 
@@ -16,10 +17,12 @@ class AudioPlayer:
         pygame.mixer.pre_init(frequency=44100)
         pygame.init()
         pygame.mixer.init(frequency=44100)
+        config_manager = Config()
+        config_manager.load("local_storage/client.ini")
         self.paused = False
-        self.music_volume = 100  # TODO Change
-        self.game_volume = 100
-        self.click_play = True
+        self.music_volume = float(config_manager.read_tag("USERINFO", "music_volume"))
+        self.game_volume = float(config_manager.read_tag("USERINFO", "game_volume"))
+        self.click_play = int(config_manager.read_tag("USERINFO", "click"))
         self.MUSIC_END = pygame.USEREVENT+1
         pygame.mixer.music.set_endevent(self.MUSIC_END)
 
@@ -59,7 +62,7 @@ class AudioPlayer:
         Description: Function to stop a channel from playing and delete it
         :return: void
         """
-        if not pygame.mixer.music.get_busy():
+        if pygame.mixer.music.get_busy():
             pygame.mixer.music.stop()
 
     @staticmethod
@@ -68,7 +71,7 @@ class AudioPlayer:
         Description: Function to stop a channel from playing and delete it
         :return: void
         """
-        if not pygame.mixer.music.get_busy():
+        if pygame.mixer.music.get_busy():
             pygame.mixer.music.fadeout(200)
 
     def click(self) -> None:

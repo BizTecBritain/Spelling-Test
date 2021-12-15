@@ -77,7 +77,7 @@ class Game:
             database = Database(self.local_storage + "server.db")
             prev_answered = int(database.select("WORDLIST", "answered", where="word=\"{0}\"".format(word))[0][0])
             database.update("WORDLIST", "answered=\"{0}\"".format(prev_answered+1), "word=\"{0}\"".format(word))
-            if word == answer:
+            if word.lower() == answer.lower():
                 prev_correct = int(database.select("WORDLIST", "correct", where="word=\"{0}\"".format(word))[0][0])
                 database.update("WORDLIST", "correct=\"{0}\"".format(prev_correct + 1), "word=\"{0}\"".format(word))
                 print(database.select("WORDLIST", "*"))

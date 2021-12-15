@@ -41,7 +41,7 @@ class PageManager:
         if resp != "1":
             self.session_manager.update(resp)
             self.logged_in = True
-        self.audio_manager.start("local_storage/client_audio/main_menu_music.mp3", -1)
+        self.audio_manager.start("local_storage/client_audio/main_menu_music.mp3", -1, True)
         client.pages.MenuPage(self).mainloop()
 
     def stop(self) -> None:
@@ -67,7 +67,7 @@ class PageManager:
 
     @Decorator.destroy_prev
     def end_page(self):
-        self.audio_manager.start("local_storage/client_audio/main_menu_music.mp3", -1)
+        self.audio_manager.start("local_storage/client_audio/main_menu_music.mp3", -1, True)
         client.pages.EndPage(self).mainloop()
 
     @Decorator.destroy_prev
@@ -80,6 +80,7 @@ class PageManager:
 
     @Decorator.destroy_prev
     def menu_page(self):
+        self.words_list = []
         client.pages.MenuPage(self).mainloop()
 
     @Decorator.destroy_prev

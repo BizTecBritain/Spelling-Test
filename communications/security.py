@@ -1,5 +1,5 @@
 __all__ = ['hash_password', 'uuid_generator', 'login_check', 'email_check', 'username_check', 'password_check',
-           'chars_only', 'hex_only', 'lettersnumbers_only']
+           'chars_only', 'hex_only', 'lettersnumbers_only', 'make_chars_only']
 __version__ = '1.3.1'
 __author__ = 'Daniel Hart'
 
@@ -132,3 +132,13 @@ def lettersnumbers_only(word: str) -> bool:
     if any(char not in string.ascii_letters+string.digits for char in word):
         return False
     return True
+
+
+def make_chars_only(sentence: str) -> str:
+    """
+    Description: Function to make a sentence letters only
+    :param sentence: the sentence to convert
+    :return: str - the new sentence
+    """
+    allowed = string.ascii_letters+string.digits+" ?,;."
+    return "".join(e for e in sentence if e in allowed)

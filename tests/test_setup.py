@@ -1,6 +1,6 @@
 from data_management.database import Database
 import os
-from communications.security import uuid_generator, hash_password
+from communications.security import uuid_generator
 import random
 from PyDictionary import PyDictionary
 import json
@@ -17,16 +17,6 @@ with open("local_storage/sql_commands/create_leaderboard.txt", "r") as f:
     database_manager.create_table("LEADERBOARD", f.readlines()[0].strip())
 with open("local_storage/sql_commands/create_wordlist.txt", "r") as f:
     database_manager.create_table("WORDLIST", f.readlines()[0].strip())
-
-uuid_1 = uuid_generator(32)
-uuid_2 = uuid_generator(32)
-uuid_3 = uuid_generator(32)
-database_manager.insert("USERS", ["username", hash_password(hash_password("password", "username"), uuid_1),
-                                  "biztecbritain@gmail.com", "true", "true", uuid_1, uuid_generator(32)])
-database_manager.insert("USERS", ["username2", hash_password(hash_password("password2", "username2"), uuid_2),
-                                  "email2@gmail.com", "false", "true", uuid_2, uuid_generator(32)])
-database_manager.insert("USERS", ["username3", hash_password(hash_password("password3", "username3"), uuid_3),
-                                  "email3@gmail.com", "true", "false", uuid_3, uuid_generator(32)])
 
 with open("local_storage/wordlists/easy.txt") as f:
     easy = f.readlines()

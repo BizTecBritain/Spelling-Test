@@ -2,15 +2,18 @@ __all__ = ['SpellingTestPage']
 __version__ = '1.0.0'
 __author__ = 'Finley Wallace - Wright'
 
+import json
+
 from .tk_base import Base
-from tkinter import Label, messagebox, Entry
+from tkinter import Label, messagebox, Entry, Frame
 from .my_tk_widgets import PhotoImage, ClickButton
 from PIL import ImageTk, Image
 from client.error_manager import show_error
 from urllib.parse import quote
+from communications.security import make_chars_only
 
 
-class SpellingTestPage(Base):  # TODO update description, fix position, raise error if too fast (not finisheds)
+class SpellingTestPage(Base):
     def __init__(self, page_manager):
         """
         Description: Constructor makes all of the tkinter widgets
@@ -41,35 +44,42 @@ class SpellingTestPage(Base):  # TODO update description, fix position, raise er
         self.test_title_label = Label(self, text="", image=self.test_title_label_photo, bg='#E4D6B6')  # label details
         self.test_title_label.place(x=self.ratio * 600, y=self.ratio * 200)  # places the label
 
-        self.definition = Label(self, font=('Courier', str(int(16 * self.ratio))), bg='#E4D6B6')  # detail
-        self.definition.place(x=self.ratio * 250, y=self.ratio * 280)  # places the label
+        self.definition = Label(self, font=('Courier', str(int(16 * self.ratio))), bg='#E4D6B6',
+                                width=150, anchor="center")  # detail
+        self.definition.bind("<Button-1>", lambda event: self.new_definition())
+        self.definition.place(x=self.ratio * 750, y=self.ratio * 320, anchor="center")  # places the label
 
-        self.type_here_label = Label(self, text='Type Your Answer Here', font=('Courier', str(int(16 * self.ratio))),
+        self.entry_frame = Frame(self, background='#E4D6B6')
+        self.entry_frame.place(x=self.ratio * 750, y=self.ratio * 500, anchor="center")  # places the label
+
+        self.type_here_label = Label(self.entry_frame, text='Type Your Answer Here:', font=('Courier', str(int(16 * self.ratio))),
                                      bg='#E4D6B6')  # detail
-        self.type_here_label.place(x=self.ratio * 250, y=self.ratio * 350)  # places the label
+        self.type_here_label.grid(row=0, column=0, padx=10)
 
-        self.word_text = Entry(self, width=40, font=(None, str(int(16 * self.ratio))))  # details for the textbox
-        self.word_text.place(x=self.ratio * 550, y=self.ratio * 350)  # places the textbox
+        self.word_text = Entry(self.entry_frame, width=15, font=(None, str(int(16 * self.ratio))))
+        self.word_text.grid(row=0, column=1, padx=10)  # places the textbox
 
         self.audio_button_photo = PhotoImage(file=r"local_storage/images/audio.png",
                                              ratio=self.ratio)  # opens the image
         self.audio_button = ClickButton(self, text="", image=self.audio_button_photo, bg='#E4D6B6',
                                         activebackground='#E4D6B6', command=self.speak_word, ratio=self.ratio,
                                         op_file=r"local_storage/images/audio_highlight.png")  # label details
-        self.audio_button.place(x=self.ratio * 920, y=self.ratio * 320)  # places the label
+        self.audio_button.place(x=self.ratio * 750, y=self.ratio * 400, anchor="center")  # places the label
 
         self.next_word_button_photo = PhotoImage(file=r"local_storage/images/next_word.png",
                                                  ratio=self.ratio)  # opens the image
         self.next_word_button = ClickButton(self, text="", image=self.next_word_button_photo, bg='#E4D6B6',
                                             activebackground='#E4D6B6', command=self.next_word, ratio=self.ratio,
                                             op_file=r"local_storage/images/next_word_highlight.png")  # label details
-        self.next_word_button.place(x=self.ratio * 250, y=self.ratio * 450)  # places the label
+        self.next_word_button.place(x=self.ratio * 750, y=self.ratio * 600, anchor="center")  # places the label
 
         self.bind("<Return>", lambda event: self.next_word())
         self.protocol("WM_DELETE_WINDOW", self.menu)
 
         self.file = None
         self.words_completed = 0
+        self.definitions = []
+        self.definitions_index = 0
         self.next_word()
 
     def menu(self) -> None:
@@ -79,6 +89,7 @@ class SpellingTestPage(Base):  # TODO update description, fix position, raise er
         """
         self.page_manager.audio_manager.click()
         if messagebox.askokcancel("Quit", "Are you sure you want to quit?"):  # asks if they are sure they want to quit
+            self.page_manager.data_channel.get_text("end_game/"+self.page_manager.session_manager.get_session_id())
             self.page_manager.menu_page(self)  # opens the menu page
 
     def speak_word(self) -> None:
@@ -114,7 +125,13 @@ class SpellingTestPage(Base):  # TODO update description, fix position, raise er
                     self.page_manager.time = headers["time"]
                     self.page_manager.score = headers["score"]
                     self.page_manager.correct = headers["correct"]
-                    self.page_manager.end_page(self)
+                    if headers["time"] != "not finished":
+                        self.page_manager.end_page(self)
+                    else:
+                        show_error(SystemError("Please Try Again Later!"))
+                        self.page_manager.data_channel.get_text("logout/"+headers["session_id"])
+                        self.page_manager.logged_in = False
+                        self.page_manager.menu_page(self)
                     return
                 if self.words_completed == 9:
                     self.next_word_button_photo = PhotoImage(file=r"local_storage/images/submit.png",
@@ -129,7 +146,12 @@ class SpellingTestPage(Base):  # TODO update description, fix position, raise er
         difficulty = self.page_manager.difficulty_chosen
         session_id = self.page_manager.session_manager.get_session_id()
         file, headers = self.page_manager.data_channel.download_file("get_audio/{0}/{1}".format(difficulty, session_id))
-        self.definition.configure(text=headers['definition'])
+        if headers['definition'] != "":
+            self.definitions = json.loads(headers['definition'])
+        else:
+            self.definitions = [""]
+        self.definition.configure(text=make_chars_only(self.definitions[0]))
+        self.definitions_index = 0
         if int(headers["error"]) == 0:
             self.page_manager.session_manager.update(headers["session_id"])
             self.file = file
@@ -137,6 +159,7 @@ class SpellingTestPage(Base):  # TODO update description, fix position, raise er
         else:
             if int(headers['error']) == -7:
                 self.page_manager.logged_in = False
+                self.page_manager.data_channel.get_text("logout/" + headers["session_id"])
                 show_error(SystemError("Problem with the session, Please try again!"))
                 self.page_manager.menu_page(self)
             if int(headers['error']) == -2 or int(headers['error']) == -1:
@@ -144,3 +167,13 @@ class SpellingTestPage(Base):  # TODO update description, fix position, raise er
             show_error(SystemError(self.page_manager.session_manager.errors[int(headers["error"])]))
             self.page_manager.menu_page(self)
         self.words_completed += 1
+
+    def new_definition(self) -> None:
+        """
+        Description: Function to cycle the definitions
+        :return:
+        """
+        self.definitions_index += 1
+        if self.definitions_index == len(self.definitions):
+            self.definitions_index = 0
+        self.definition.configure(text=make_chars_only(self.definitions[self.definitions_index]))

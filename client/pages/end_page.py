@@ -59,7 +59,7 @@ class EndPage(Base):
 
         self.words_spelt_incorrectly_text = Label(self, font=('Courier', str(int(20 * self.ratio))), bg='#E4D6B6',
                                                   text=self.page_manager.score + "points")
-        self.words_spelt_incorrectly_text.place(x=self.ratio * 520, y=self.ratio * 300)
+        self.words_spelt_incorrectly_text.place(x=self.ratio * 560, y=self.ratio * 297)
         self.words_spelt_incorrectly_text.config(state='disabled')  # disables textbox to prevent editing
 
         self.placement_label = Label(self, text='Have A Look At Where You Placed',

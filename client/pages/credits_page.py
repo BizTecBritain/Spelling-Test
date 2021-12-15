@@ -35,7 +35,7 @@ class CreditsPage(Base):
 
         self.exit_button_photo = PhotoImage(file=r"local_storage/images/exit.png", ratio=self.ratio)  # opens the image
         self.exit_button = ClickButton(self, text="", image=self.exit_button_photo, bg='#E4D6B6',
-                                       activebackground='#E4D6B6', command=self.menu, ratio=self.ratio,
+                                       activebackground='#E4D6B6', command=self.settings, ratio=self.ratio,
                                        op_file="local_storage/images/exit_highlight.png")
         self.exit_button.place(x=self.ratio * 1344, y=self.ratio * 781)  # places the button
 
@@ -43,13 +43,13 @@ class CreditsPage(Base):
                                               'Finley Wallace - Wright and Edward Hopper\n'
                                               '\n'  # newline (blank)
                                               '\n'  # newline (blank)
-                                              'Something Here - Alexander Bisland\n'
+                                              'Server - Alexander Bisland\n'
                                               '\n'  # newline (blank)
                                               'Login and Register - Daniel Hart\n'
                                               '\n'  # newline (blank)
                                               'GUI - Finley Wallace - Wright\n'
                                               '\n'  # newline (blank)
-                                              'Something Here - Edward Hopper\n'
+                                              'Utility Functions - Edward Hopper\n'
                                               '\n'  # newline (blank)
                                               '\n'  # newline (blank)
                                               '\n'  # newline (blank)
@@ -57,12 +57,12 @@ class CreditsPage(Base):
                                    font=('Courier', str(int(18 * self.ratio)), 'bold'), bg='#E4D6B6')
         self.credits_label.place(x=self.ratio * 80, y=self.ratio * 320)  # places label
 
-        self.protocol("WM_DELETE_WINDOW", self.menu)
+        self.protocol("WM_DELETE_WINDOW", self.settings)
 
-    def menu(self) -> None:
+    def settings(self) -> None:
         """
-        Description: Function to return to the menu
+        Description: Function to return to the settings page
         :return: void
         """
         self.page_manager.audio_manager.click()
-        self.page_manager.menu_page(self)  # opens the menu page
+        self.page_manager.settings_page(self)  # opens the menu page

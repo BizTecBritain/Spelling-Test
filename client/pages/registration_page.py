@@ -36,7 +36,7 @@ class RegistrationPage(Base):
         self.exit_button_photo = PhotoImage(file=r"local_storage/images/exit.png", ratio=self.ratio)  # opens the image
         self.exit_button = ClickButton(self, text="", image=self.exit_button_photo, bg='#E4D6B6', ratio=self.ratio,
                                        activebackground="#E4D6B6", command=self.on_closing,
-                                       op_file="local_storage/images/exit_highlight.png", pagemanager=self.page_manager)
+                                       op_file="local_storage/images/exit_highlight.png")
         self.exit_button.place(x=self.ratio * 1344, y=self.ratio * 781)  # places the button
 
         self.register_register_label_photo = PhotoImage(file=r"local_storage/images/register_register_page.png",

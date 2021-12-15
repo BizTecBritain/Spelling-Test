@@ -497,7 +497,7 @@ class FlaskServer(FlaskView):
             response.headers['correct'] = self.session_manager.sessions[new_session_id][1].get_correct()
             response.headers['session_id'] = new_session_id
             response.headers['error'] = 0
-            response.headers['prev_word'] = word
+            response.headers['prev_word'] = word.lower()
             if delete_game:
                 self.session_manager.sessions[new_session_id][1] = None
             return response
@@ -517,7 +517,7 @@ class FlaskServer(FlaskView):
         if request.method == 'POST':
             try:
                 session_id = request.form['session_id']
-                answer = request.form['difficulty']
+                answer = request.form['answer']
                 return self.submit_answer(session_id, answer)
             except KeyError:
                 return make_response("")
@@ -528,6 +528,39 @@ class FlaskServer(FlaskView):
                 return self.submit_answer(session_id, answer)
             except KeyError:
                 return make_response("")
+
+    @route('/end_game/<string:session_id>')
+    def end_game(self, session_id: str) -> str:
+        """
+        Description: Constructor sets up attributes including objects
+        :param session_id: the session_id to submit the answer to
+        :return: str - new session_id
+        """
+        status, new_session_id = self.session_manager.validate_session(session_id, 30)
+        if status == 1:
+            self.session_manager.sessions[new_session_id][1] = None
+        else:
+            self.logout(session_id)
+        return new_session_id
+
+    @route('/submit_answer', methods=["GET", "POST"])
+    def end_game_get_post(self) -> str:
+        """
+        Description: Constructor sets up attributes including objects
+        :return: str - new session_id
+        """
+        if request.method == 'POST':
+            try:
+                session_id = request.form['session_id']
+                return self.end_game(session_id)
+            except KeyError:
+                return ""
+        else:
+            try:
+                session_id = request.args.get('session_id')
+                return self.end_game(session_id)
+            except KeyError:
+                return ""
 
     @route('/establish_connection')
     def establish_connection(self) -> str:
@@ -602,7 +635,7 @@ class FlaskServer(FlaskView):
                 password = hash_password(new_pass, resp[0][0])
             else:
                 return redirect(url_for('FlaskServer:wrong_reset_password'))
-            password = hash_password(hash_password(password, resp[0][0]), resp[0][1])
+            password = hash_password(password, resp[0][1])
             database_manager.update("USERS", "password=\"{0}\"".format(password),
                                     "username=\"{0}\"".format(resp[0][0]))
             return redirect(url_for('FlaskServer:done_reset'))
