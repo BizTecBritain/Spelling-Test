@@ -3,7 +3,7 @@ __version__ = '1.0.0'
 __author__ = 'Finley Wallace - Wright'
 
 from .tk_base import Base
-from tkinter import Label
+from tkinter import Label, Checkbutton, IntVar
 from .my_tk_widgets import PhotoImage, Button, Slider
 from PIL import ImageTk, Image
 from client.page_manager import PageManager
@@ -24,6 +24,7 @@ class SettingsPage(Base):
         self.config_parser.load("local_storage/client.ini")
         self.music_volume_set = float(self.config_parser.read_tag("USERINFO", "music_volume"))  # default sound setting
         self.game_audio_volume_set = float(self.config_parser.read_tag("USERINFO", "game_volume"))
+        temp_click = int(self.config_parser.read_tag("USERINFO", "click"))
         self.temp_music = 0
         self.temp_game = 20
         self.music_mute = False
@@ -74,9 +75,26 @@ class SettingsPage(Base):
                                          font=("Courier", str(int(16 * self.ratio))), bg='#E4D6B6')  # details for label
         self.volume_slider_label.place(x=self.ratio * 100, y=self.ratio * 300)  # places label
 
-        def main_volume_change(value):
+        self.click_audio_var = IntVar()
+        self.click_audio_var.set(temp_click)
+        self.click_audio_var.trace_add("write", lambda *args: click_change())
+        self.click_audio = Checkbutton(self, text="Click audio", font=("Courier", str(int(16 * self.ratio))),
+                                       variable=self.click_audio_var, bg='#E4D6B6')
+        self.click_audio.place(x=self.ratio * 500, y=self.ratio * 500)
+
+        def click_change() -> None:
+            """
+            Description: Function to trace when the checkbutton is pressed
+            :return: void
+            """
+            if self.click_audio_var.get():
+                self.page_manager.audio_manager.click()
+            self.applied = False
+
+        def main_volume_change(value: float) -> None:
             """
             Description: Function for the main volume slider is used
+            :param value: the new value of the slider
             :return: void
             """
             self.music_volume_set = int(value * 10) / 1000
@@ -94,9 +112,10 @@ class SettingsPage(Base):
                 self.unmute_button_music.configure(image=self.unmute_button_photo)
             self.applied = False
 
-        def game_volume_change(value):
+        def game_volume_change(value: float) -> None:
             """
             Description: Function for when the game audio slider is used
+            :param value: the new value of the slider
             :return: void
             """
             self.game_audio_volume_set = int(value * 10) / 1000
@@ -153,6 +172,7 @@ class SettingsPage(Base):
         if not self.applied:
             if ask_yes_no("Apply Settings", "Do you want to apply the settings?"):
                 self.apply()
+        self.page_manager.audio_manager.start("local_storage/client_audio/main_menu_music.mp3", -1)
         self.page_manager.menu_page(self)  # opens the menu page
 
     def test_sound_music(self) -> None:
@@ -164,7 +184,9 @@ class SettingsPage(Base):
         self.page_manager.audio_manager.stop()
         if self.playing != 1:
             self.page_manager.audio_manager.start("local_storage/client_audio/main_menu_music.mp3", 0, True)
-        self.playing = 1
+            self.playing = 1
+        else:
+            self.playing = 0
 
     def test_sound_game(self) -> None:
         """
@@ -175,7 +197,9 @@ class SettingsPage(Base):
         self.page_manager.audio_manager.stop()
         if self.playing != 2:
             self.page_manager.audio_manager.start("local_storage/client_audio/test_audio.mp3")
-        self.playing = 2
+            self.playing = 2
+        else:
+            self.playing = 0
 
     def mute_sound(self) -> None:
         """
@@ -224,6 +248,8 @@ class SettingsPage(Base):
         self.config_parser.append_tag("USERINFO", "music_volume", str(self.music_volume_set))
         self.page_manager.audio_manager.game_volume = self.game_audio_volume_set
         self.config_parser.append_tag("USERINFO", "game_volume", str(self.game_audio_volume_set))
+        self.page_manager.audio_manager.click_play = self.click_audio_var.get()
+        self.config_parser.append_tag("USERINFO", "click", str(self.click_audio_var.get()))
 
     def check_event(self) -> None:
         """
@@ -232,6 +258,5 @@ class SettingsPage(Base):
         """
         for event in self.page_manager.audio_manager.get_events():
             if event.type == self.page_manager.audio_manager.MUSIC_END:
-                print('music end event')
                 self.playing = 0
         self.after(100, self.check_event)

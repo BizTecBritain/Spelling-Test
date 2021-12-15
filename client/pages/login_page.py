@@ -62,6 +62,7 @@ class LoginPage(Base):  # TODO add 2fa
         self.login_button.place(x=self.ratio * 560, y=self.ratio * 430)  # places the button
 
         def open_url():  # what to do when the privacy policy is clicked
+            self.page_manager.audio_manager.click()
             webbrowser.open_new_tab(url)  # opens the url
 
         url = "https://www.freeprivacypolicy.com/live/4330e9cd-6747-4d1f-bd9c-70b4960b3c61"  # url to open
@@ -97,6 +98,7 @@ class LoginPage(Base):  # TODO add 2fa
         Description: Function to log the user in
         :return: void
         """
+        self.page_manager.audio_manager.click()
         username, password = self.entry_username.get(), self.entry_password.get()
         if len(username) == 0 or len(password) == 0:
             tkinter.messagebox.showerror("Invalid Credentials", "Please enter some details!")
@@ -131,6 +133,7 @@ class LoginPage(Base):  # TODO add 2fa
         Description: Function to return to the registration page
         :return: void
         """
+        self.page_manager.audio_manager.click()
         self.page_manager.registration_page(self)  # opens the registration page
 
     def reset_password(self) -> None:
@@ -138,6 +141,7 @@ class LoginPage(Base):  # TODO add 2fa
         Description: Function to return to forgot password page
         :return: void
         """
+        self.page_manager.audio_manager.click()
         self.page_manager.forgot_password(self)
 
     def on_closing(self) -> None:
@@ -145,4 +149,5 @@ class LoginPage(Base):  # TODO add 2fa
         Description: Function to return to the menu
         :return: void
         """
+        self.page_manager.audio_manager.click()
         self.page_manager.menu_page(self)  # opens the menu page

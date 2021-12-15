@@ -19,7 +19,9 @@ class AudioPlayer:
         self.paused = False
         self.music_volume = 100  # TODO Change
         self.game_volume = 100
+        self.click_play = True
         self.MUSIC_END = pygame.USEREVENT+1
+        pygame.mixer.music.set_endevent(self.MUSIC_END)
 
     def start(self, file: str, loops: int = 0, music: bool = False) -> None:
         """
@@ -69,13 +71,13 @@ class AudioPlayer:
         if not pygame.mixer.music.get_busy():
             pygame.mixer.music.fadeout(200)
 
-    @staticmethod
-    def click() -> None:
+    def click(self) -> None:
         """
         Description: Function to play mouse click sound
         :return: void
         """
-        pygame.mixer.Sound("local_storage/clieent_audio/MouseClick.wav").play()
+        if self.click_play:
+            pygame.mixer.Sound("local_storage/client_audio/MouseClick.wav").play()
 
     @staticmethod
     def get_events() -> pygame.event:

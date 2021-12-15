@@ -67,6 +67,7 @@ class ForgotPasswordPage(Base):
         Description: Function for when exit is pressed
         :return: void
         """
+        self.page_manager.audio_manager.click()
         self.page_manager.login_page(self)  # opens the menu page
 
     def submit_info(self) -> None:
@@ -74,6 +75,7 @@ class ForgotPasswordPage(Base):
         Description: Function for when submit is pressed
         :return: void
         """
+        self.page_manager.audio_manager.click()
         username = quote(self.username_entry.get(), safe="")
         email = quote(self.email_entry.get(), safe="")
         resp = self.page_manager.data_channel.get_text("reset_password/{0}/{1}".format(username, email))

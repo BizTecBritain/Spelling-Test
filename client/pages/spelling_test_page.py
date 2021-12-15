@@ -4,13 +4,13 @@ __author__ = 'Finley Wallace - Wright'
 
 from .tk_base import Base
 from tkinter import Label, messagebox, Entry
-from .my_tk_widgets import PhotoImage, Button, ClickButton
+from .my_tk_widgets import PhotoImage, ClickButton
 from PIL import ImageTk, Image
 from client.error_manager import show_error
 from urllib.parse import quote
 
 
-class SpellingTestPage(Base):  # TODO update description, fix position
+class SpellingTestPage(Base):  # TODO update description, fix position, raise error if too fast (not finisheds)
     def __init__(self, page_manager):
         """
         Description: Constructor makes all of the tkinter widgets
@@ -31,8 +31,9 @@ class SpellingTestPage(Base):  # TODO update description, fix position
         self.squid_games_label.place(x=self.ratio * 250, y=self.ratio * 20)  # places the label
 
         self.exit_button_photo = PhotoImage(file=r"local_storage/images/exit.png", ratio=self.ratio)  # opens the image
-        self.exit_button = Button(self, text="", image=self.exit_button_photo, bg='#E4D6B6', activebackground="#E4D6B6",
-                                  command=self.menu)  # closes the registration and opens menu
+        self.exit_button = ClickButton(self, text="", image=self.exit_button_photo, bg='#E4D6B6', command=self.menu,
+                                       activebackground="#E4D6B6", op_file="local_storage/images/exit_highlight.png",
+                                       ratio=self.ratio)  # closes the registration and opens menu
         self.exit_button.place(x=self.ratio * 1344, y=self.ratio * 781)  # places the button
 
         self.test_title_label_photo = PhotoImage(file=r"local_storage/images/test_title.png",
@@ -76,6 +77,7 @@ class SpellingTestPage(Base):  # TODO update description, fix position
         Description: Function to return to the menu
         :return: void
         """
+        self.page_manager.audio_manager.click()
         if messagebox.askokcancel("Quit", "Are you sure you want to quit?"):  # asks if they are sure they want to quit
             self.page_manager.menu_page(self)  # opens the menu page
 
@@ -92,6 +94,7 @@ class SpellingTestPage(Base):  # TODO update description, fix position
         :return: void
         """
         if self.words_completed != 0:
+            self.page_manager.audio_manager.click()
             word = self.word_text.get()
             if len(word) != 0:
                 self.word_text.delete(0, 'end')

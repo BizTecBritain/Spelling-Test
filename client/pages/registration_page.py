@@ -36,7 +36,7 @@ class RegistrationPage(Base):
         self.exit_button_photo = PhotoImage(file=r"local_storage/images/exit.png", ratio=self.ratio)  # opens the image
         self.exit_button = ClickButton(self, text="", image=self.exit_button_photo, bg='#E4D6B6', ratio=self.ratio,
                                        activebackground="#E4D6B6", command=self.on_closing,
-                                       op_file="local_storage/images/exit_highlight.png")
+                                       op_file="local_storage/images/exit_highlight.png", pagemanager=self.page_manager)
         self.exit_button.place(x=self.ratio * 1344, y=self.ratio * 781)  # places the button
 
         self.register_register_label_photo = PhotoImage(file=r"local_storage/images/register_register_page.png",
@@ -80,6 +80,7 @@ class RegistrationPage(Base):
         self.register_confirm.place(x=self.ratio * 690, y=self.ratio * 560)  # places the button
 
         def open_url():  # what to do when the privacy policy is clicked
+            self.page_manager.audio_manager.click()
             webbrowser.open_new_tab(url)  # opens the url
 
         url = "https://www.freeprivacypolicy.com/live/4330e9cd-6747-4d1f-bd9c-70b4960b3c61"  # url to open
@@ -100,6 +101,7 @@ class RegistrationPage(Base):
         Description: Function to register the user
         :return: void
         """
+        self.page_manager.audio_manager.click()
         username, password = self.username_ask_entry.get(), self.password_ask_entry.get()
         email = self.email_ask_entry.get()
         if username != "" and password != "" and email != "":
@@ -117,18 +119,12 @@ class RegistrationPage(Base):
             else:
                 show_error(SystemError(self.page_manager.session_manager.errors[resp]))
 
-    def login(self) -> None:
-        """
-        Description: Function to return to the login page
-        :return: void
-        """
-        self.page_manager.login_page(self)
-
     def on_closing(self) -> None:
         """
         Description: Function to return to the menu
         :return: void
         """
+        self.page_manager.audio_manager.click()
         self.page_manager.menu_page(self)  # opens the menu page
 
     def __createImage(self, flag: int = 0) -> None:
@@ -138,6 +134,7 @@ class RegistrationPage(Base):
         :return: void
         """
         if flag == 1:
+            self.page_manager.audio_manager.click()
             self.__verify_label.place_forget()
         self.captcha_ask_entry.delete(0, tkinter.END)
         resp, headers = self.page_manager.data_channel.get_text_headers("request_captcha/"+str(self.ratio))

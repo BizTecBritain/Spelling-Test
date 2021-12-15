@@ -40,4 +40,5 @@ class TooManyRequestsPage(Base):
         self.protocol("WM_DELETE_WINDOW", self.menu)
 
     def menu(self):  # function for when exit is pressed
+        self.page_manager.audio_manager.click()
         self.page_manager.menu_page(self)  # opens the menu page

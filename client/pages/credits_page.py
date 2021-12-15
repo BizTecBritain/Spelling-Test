@@ -4,7 +4,7 @@ __author__ = 'Finley Wallace - Wright'
 
 from .tk_base import Base
 from tkinter import Label
-from .my_tk_widgets import PhotoImage, Button
+from .my_tk_widgets import PhotoImage, ClickButton
 from PIL import ImageTk, Image
 from client.page_manager import PageManager
 
@@ -34,8 +34,9 @@ class CreditsPage(Base):
         self.credits_title_label.place(x=self.ratio * 550, y=self.ratio * 200)  # places the label
 
         self.exit_button_photo = PhotoImage(file=r"local_storage/images/exit.png", ratio=self.ratio)  # opens the image
-        self.exit_button = Button(self, text="", image=self.exit_button_photo, bg='#E4D6B6', activebackground='#E4D6B6',
-                                  command=self.menu)  # closes the leaderboard and opens menu
+        self.exit_button = ClickButton(self, text="", image=self.exit_button_photo, bg='#E4D6B6',
+                                       activebackground='#E4D6B6', command=self.menu, ratio=self.ratio,
+                                       op_file="local_storage/images/exit_highlight.png")
         self.exit_button.place(x=self.ratio * 1344, y=self.ratio * 781)  # places the button
 
         self.credits_label = Label(self, text='Squid Games - Created By Alexander Bisland, Daniel Hart, '
@@ -53,7 +54,7 @@ class CreditsPage(Base):
                                               '\n'  # newline (blank)
                                               '\n'  # newline (blank)
                                               'Thank You For Taking Our Spelling Test!',
-                                   font=('Courier', str(int(18*self.ratio)), 'bold'), bg='#E4D6B6')
+                                   font=('Courier', str(int(18 * self.ratio)), 'bold'), bg='#E4D6B6')
         self.credits_label.place(x=self.ratio * 80, y=self.ratio * 320)  # places label
 
         self.protocol("WM_DELETE_WINDOW", self.menu)
@@ -63,4 +64,5 @@ class CreditsPage(Base):
         Description: Function to return to the menu
         :return: void
         """
+        self.page_manager.audio_manager.click()
         self.page_manager.menu_page(self)  # opens the menu page

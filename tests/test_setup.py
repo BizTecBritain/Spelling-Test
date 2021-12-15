@@ -3,6 +3,7 @@ import os
 from communications.security import uuid_generator, hash_password
 import random
 from PyDictionary import PyDictionary
+import json
 
 try:
     os.remove('local_storage/server.db')
@@ -43,19 +44,28 @@ for i in range(30):
     easy_t = easy[i].strip()
     easy_d_tmp = dictionary.meaning(easy_t)
     try:
-        easy_d = ", ".join(easy_d_tmp[list(easy_d_tmp.keys())[0]]).replace(easy_t, "?")
+        easy_d = json.dumps([item.replace(easy_t, "?")
+                            for sublist in list(easy_d_tmp.values())
+                            for item in sublist
+                            if len(item) < 150])
     except AttributeError:
         easy_d = ""
     med_t = medium[i].strip()
     med_d_tmp = dictionary.meaning(med_t)
     try:
-        med_d = ", ".join(med_d_tmp[list(med_d_tmp.keys())[0]]).replace(med_t, "?")
+        med_d = json.dumps([item.replace(med_t, "?")
+                            for sublist in list(med_d_tmp.values())
+                            for item in sublist
+                            if len(item) < 150])
     except AttributeError:
         med_d = ""
     hard_t = hard[i].strip()
     hard_d_tmp = dictionary.meaning(hard_t)
     try:
-        hard_d = ", ".join(hard_d_tmp[list(hard_d_tmp.keys())[0]]).replace(hard_t, "?")
+        hard_d = json.dumps([item.replace(hard_t, "?")
+                            for sublist in list(hard_d_tmp.values())
+                            for item in sublist
+                            if len(item) < 150])
     except AttributeError:
         hard_d = ""
     database_manager.insert("WORDLIST", [uuid_generator()+".mp3", "easy", easy_t, easy_d, 0, 0])

@@ -75,6 +75,7 @@ class MenuPage(Base):
         Description: Function to return to the login page
         :return: void
         """
+        self.page_manager.audio_manager.click()
         self.page_manager.login_page(self)  # opens the login page and closes menu
 
     def register_redirect(self) -> None:
@@ -82,6 +83,7 @@ class MenuPage(Base):
         Description: Function to return to the registration page
         :return: void
         """
+        self.page_manager.audio_manager.click()
         self.page_manager.registration_page(self)  # opens the register page and closes menu
 
     def choose_difficulty(self) -> None:
@@ -89,6 +91,7 @@ class MenuPage(Base):
         Description: Function to return to the difficulty page
         :return: void
         """
+        self.page_manager.audio_manager.click()
         self.page_manager.difficulty_page(self)  # opens the test page and closes menu
 
     def leaderboard(self) -> None:
@@ -96,6 +99,7 @@ class MenuPage(Base):
         Description: Function to return to the leaderboard page
         :return: void
         """
+        self.page_manager.audio_manager.click()
         self.page_manager.leaderboard_page(self)  # opens the leaderboard and closes menu
 
     def logout(self) -> None:
@@ -103,6 +107,7 @@ class MenuPage(Base):
         Description: Function to logout user
         :return: void
         """
+        self.page_manager.audio_manager.click()
         session_id = self.page_manager.session_manager.get_session_id()
         self.page_manager.data_channel.get_text("logout/{0}".format(session_id))
         self.page_manager.logged_in = False
@@ -113,4 +118,5 @@ class MenuPage(Base):
         Description: Function to return to the settings page
         :return: void
         """
+        self.page_manager.audio_manager.click()
         self.page_manager.settings_page(self)

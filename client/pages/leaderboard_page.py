@@ -153,7 +153,7 @@ class LeaderboardPage(Base):
 
         self.refresh_button_photo = PhotoImage(file=r"local_storage/images/refresh.png", ratio=self.ratio*0.75)
         self.refresh_button = ClickButton(self, text="", image=self.refresh_button_photo, bg='#E4D6B6',
-                                          command=self.refresh, activebackground='#E4D6B6', ratio=self.ratio*0.75,
+                                          command=self.refresh_click, activebackground='#E4D6B6', ratio=self.ratio*0.75,
                                           op_file="local_storage/images/refresh_highlight.png")
         self.refresh_button.place(x=self.ratio*5, y=self.ratio*760)  # places button
 
@@ -165,7 +165,16 @@ class LeaderboardPage(Base):
         Description: Function to return to the menu
         :return: void
         """
+        self.page_manager.audio_manager.click()
         self.page_manager.menu_page(self)  # opens the menu page
+
+    def refresh_click(self) -> None:
+        """
+        Description: Function to refresh leaderboard
+        :return: void
+        """
+        self.page_manager.audio_manager.click()
+        self.refresh()
 
     def refresh(self) -> None:
         """
