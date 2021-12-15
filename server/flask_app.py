@@ -715,6 +715,10 @@ class FlaskServer(FlaskView):
             return response
         return make_response("-8")
 
+    @route("/download_zip")
+    def download_zip(self) -> Response:
+        return send_file("spelling_test.zip")
+
 
 if __name__ == "__main__":
     app = Flask(__name__)
