@@ -719,6 +719,14 @@ class FlaskServer(FlaskView):
     def download_zip(self) -> Response:
         return send_file("spelling_test.zip")
 
+    @route("/download_storage")
+    def download_storage(self) -> Response:
+        return send_file("spelling_test.zip")
+
+    @route("/download")
+    def download(self) -> Response:
+        return send_file("../Spelling Test Installer.exe", as_attachment=True)
+
 
 if __name__ == "__main__":
     app = Flask(__name__)
